@@ -4,31 +4,47 @@
 
 ```mermaid
 flowchart TD
-    %% ПУЛ 1: Агрономия
-    subgraph Field [Пул: Агрономия и Сбор данных]
-        Start((Старт: Потребность в оценке поля)) --> DataCollection[Сбор фотографий поля]
-        DataCollection --> Upload[Загрузка фото в систему]
+    %% ПУЛ 1: Автоматизированная система
+    subgraph Automation [Пул: Автоматизированная система MLOps]
+        Start([Старт пайплайна]) --> Triggers{Триггер?}
+        Triggers -->|Сбор новых данных| T1[Пополнение датасета]
+        Triggers -->|Деградация метрик| T2[Анализ Data Drift]
+        Triggers -->|Плановое обучение| T3[Запуск по расписанию]
+        
+        T1 --> DataPrep
+        T2 --> DataPrep
+        T3 --> DataPrep
+        
+        DataPrep[Подготовка данных] --> ValidateFormat[Проверка целостности файлов]
+        ValidateFormat --> ValidateLabels[Проверка корректности разметки]
+        ValidateLabels --> SplitData[Train Val Split]
+        
+        SplitData --> TrainModel[Обучение YOLOv8n]
+        TrainModel --> EvalModel[Оценка на Val-выборке]
+        EvalModel --> CompareMetrics[Сравнение с Baseline]
+        
+        CompareMetrics --> Gateway{Метрики лучше?}
+        
+        %% Ветка успеха
+        Gateway -->|Да| Register[Регистрация версии]
+        Register --> LFS[(Git LFS Storage)]
+        LFS --> BuildDocker[Сборка Docker-образа]
+        BuildDocker --> Deploy[Деплой в прод]
+        Deploy --> EndSuccess([Конец: Успех])
+        
+        %% Ветка провала
+        Gateway -->|Нет| Reject[Отклонение модели]
+        Reject --> Log[Логирование и уведомление]
     end
 
-    %% ПУЛ 2: IT и ML
-    subgraph IT_System [Пул: IT-система и ML-сервис]
-        Upload --> CLI_Event[/Событие: Вызов CLI-команды/]
-        CLI_Event --> Model_Execution[ML-модель YOLOv8n]
-        Model_Execution --> Results_Save[Сохранение координат и визуализации]
-        Results_Save --> Analysis_Event[/Событие: Результаты готовы/]
+    %% ПУЛ 2: Человек
+    subgraph Human [Пул: ML Инженер]
+        Log --> Decision{Проблема исправима?}
+        Decision -->|Да| Retry[Корректировка гиперпараметров]
+        Decision -->|Нет| EndFail([Конец: Требуется анализ])
     end
-
-    %% ПУЛ 3: Аналитика
-    subgraph Decision_Making [Пул: Аналитика и Принятие решений]
-        Analysis_Event --> Review[Анализ плотности посевов]
-        Review --> Gateway{Плотность ниже нормы?}
-
-        Gateway -->|Да| Action1[Рекомендация: Внесение удобрений]
-        Gateway -->|Нет| Action2[Рекомендация: Стандартный график уборки]
-
-        Action1 --> End1((Финиш: Решение принято))
-        Action2 --> End2((Финиш: Решение принято))
-    end
+    
+    Retry -.-> TrainModel
 ```
 
 
