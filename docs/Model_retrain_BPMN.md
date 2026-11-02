@@ -4,7 +4,7 @@
 
 ```mermaid
 flowchart TD
-    %% ПУЛ 1: Триггеры и Автоматизированная система
+    %% ПУЛ 1: Автоматизированная система
     subgraph Automation [Пул: Автоматизированная система MLOps]
         Start([Старт пайплайна]) --> Triggers{Триггер?}
         Triggers -->|Сбор новых данных| T1[Пополнение датасета]
@@ -15,22 +15,21 @@ flowchart TD
         T2 --> DataPrep
         T3 --> DataPrep
         
-        DataPrep[Подготовка данных] --> ValidateData[Валидация и разметка]
-        ValidateData --> SplitData[Train Val Split]
+        DataPrep[Подготовка данных] --> ValidateFormat[Проверка целостности файлов]
+        ValidateFormat --> ValidateLabels[Проверка корректности разметки]
+        ValidateLabels --> SplitData[Train Val Split]
         
         SplitData --> TrainModel[Обучение YOLOv8n]
-        TrainModel --> EvalModel[Валидация модели]
-        EvalModel --> Metrics[Расчет метрик mAP и Recall]
+        TrainModel --> EvalModel[Оценка на Val-выборке]
+        EvalModel --> CompareMetrics[Сравнение с Baseline]
         
-        Metrics --> Gateway{Метрики лучше?}
+        CompareMetrics --> Gateway{Метрики лучше?}
         
         %% Ветка успеха
         Gateway -->|Да| Register[Регистрация версии]
-        
-        %% Цилиндр для Git LFS
         Register --> LFS[(Git LFS Storage)]
-        
-        LFS --> Deploy[Деплой в прод]
+        LFS --> BuildDocker[Сборка Docker-образа]
+        BuildDocker --> Deploy[Деплой в прод]
         Deploy --> EndSuccess([Конец: Успех])
         
         %% Ветка провала
@@ -38,16 +37,13 @@ flowchart TD
         Reject --> Log[Логирование и уведомление]
     end
 
-    %% ПУЛ 2: Человек (ML Инженер)
+    %% ПУЛ 2: Человек
     subgraph Human [Пул: ML Инженер]
         Log --> Decision{Проблема исправима?}
-        
-        %% Возврат в автоматизированный пул (петля)
         Decision -->|Да| Retry[Корректировка гиперпараметров]
         Decision -->|Нет| EndFail([Конец: Требуется анализ])
     end
     
-    %% Связь корректировки с повторным обучением
     Retry -.-> TrainModel
 ```
 
