@@ -7,41 +7,41 @@ flowchart TD
     %% ПУЛ 1: Автоматизированная система
     subgraph Automation [Пул: Автоматизированная система MLOps]
         Start([Старт пайплайна]) --> Triggers{Триггер?}
-        Triggers -->|Сбор новых данных| T1[Пополнение датасета]
-        Triggers -->|Деградация метрик| T2[Анализ Data Drift]
-        Triggers -->|Плановое обучение| T3[Запуск по расписанию]
+        Triggers -->|Сбор данных| T1[Пополнение<br>датасета]
+        Triggers -->|Деградация| T2[Анализ<br>Data Drift]
+        Triggers -->|План| T3[Запуск<br>по расписанию]
         
         T1 --> DataPrep
         T2 --> DataPrep
         T3 --> DataPrep
         
-        DataPrep[Подготовка данных] --> ValidateFormat[Проверка целостности файлов]
-        ValidateFormat --> ValidateLabels[Проверка корректности разметки]
+        DataPrep[Подготовка данных] --> ValidateFormat[Проверка<br>целостности файлов]
+        ValidateFormat --> ValidateLabels[Проверка<br>разметки]
         ValidateLabels --> SplitData[Train Val Split]
         
-        SplitData --> TrainModel[Обучение YOLOv8n]
-        TrainModel --> EvalModel[Оценка на Val-выборке]
-        EvalModel --> CompareMetrics[Сравнение с Baseline]
+        SplitData --> TrainModel[Обучение<br>YOLOv8n]
+        TrainModel --> EvalModel[Оценка<br>на Val-выборке]
+        EvalModel --> CompareMetrics[Сравнение<br>с Baseline]
         
-        CompareMetrics --> Gateway{Метрики лучше?}
+        CompareMetrics --> Gateway{Метрики<br>лучше?}
         
         %% Ветка успеха
-        Gateway -->|Да| Register[Регистрация версии]
-        Register --> LFS[(Git LFS Storage)]
-        LFS --> BuildDocker[Сборка Docker-образа]
+        Gateway -->|Да| Register[Регистрация<br>версии]
+        Register --> LFS[(Git LFS<br>Storage)]
+        LFS --> BuildDocker[Сборка<br>Docker-образа]
         BuildDocker --> Deploy[Деплой в прод]
         Deploy --> EndSuccess([Конец: Успех])
         
         %% Ветка провала
-        Gateway -->|Нет| Reject[Отклонение модели]
-        Reject --> Log[Логирование и уведомление]
+        Gateway -->|Нет| Reject[Отклонение<br>модели]
+        Reject --> Log[Логирование<br>и уведомление]
     end
 
     %% ПУЛ 2: Человек
     subgraph Human [Пул: ML Инженер]
-        Log --> Decision{Проблема исправима?}
-        Decision -->|Да| Retry[Корректировка гиперпараметров]
-        Decision -->|Нет| EndFail([Конец: Требуется анализ])
+        Log --> Decision{Проблема<br>исправима?}
+        Decision -->|Да| Retry[Корректировка<br>гиперпараметров]
+        Decision -->|Нет| EndFail([Конец:<br>Требуется анализ])
     end
     
     Retry -.-> TrainModel
