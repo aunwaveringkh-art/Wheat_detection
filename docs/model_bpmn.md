@@ -6,32 +6,31 @@
 flowchart TD
     %% ПУЛ 1: Агрономия
     subgraph Field [Пул: Агрономия и Сбор данных]
-        Start([Старт: Потребность в оценке поля]) --> DataCollection[Сбор фотографий поля]
-        DataCollection --> Upload[Загрузка фото в систему]
+        Start([Старт: Потребность<br>в оценке поля]) --> DataCollection[Сбор<br>фотографий]
+        DataCollection --> Upload[Загрузка фото<br>в систему]
     end
 
     %% ПУЛ 2: IT и ML
     subgraph IT_System [Пул: IT-система и ML-сервис]
-        Upload --> CLI_Event([Событие: Вызов CLI-команды])
-        CLI_Event --> Model_Execution[Запуск ML-модели YOLOv8n]
-        Model_Execution --> Results_Save[Сохранение результатов]
+        Upload --> CLI_Event([Событие: Вызов<br>CLI-команды])
+        CLI_Event --> Model_Execution[Запуск<br>ML-модели YOLOv8n]
+        Model_Execution --> Results_Save[Сохранение<br>результатов]
         
-        %% Цилиндр для обозначения хранилища
-        Results_Save --> DB[(Директория runs/predict/)]
+        Results_Save --> DB[(Директория<br>runs/predict/)]
         
-        DB --> Analysis_Event([Событие: Результаты готовы])
+        DB --> Analysis_Event([Событие:<br>Результаты готовы])
     end
 
     %% ПУЛ 3: Аналитика
     subgraph Decision_Making [Пул: Аналитика и Принятие решений]
-        Analysis_Event --> Review[Анализ плотности посевов]
-        Review --> Gateway{Плотность ниже нормы?}
+        Analysis_Event --> Review[Анализ плотности<br>посевов]
+        Review --> Gateway{Плотность<br>ниже нормы?}
         
-        Gateway -->|Да| Action1[Рекомендация: Внесение удобрений]
-        Gateway -->|Нет| Action2[Рекомендация: Стандартный график уборки]
+        Gateway -->|Да| Action1[Рекомендация:<br>Внесение удобрений]
+        Gateway -->|Нет| Action2[Рекомендация:<br>Стандартный график]
         
-        Action1 --> End1([Финиш: Решение принято])
-        Action2 --> End2([Финиш: Решение принято])
+        Action1 --> End1([Финиш:<br>Решение принято])
+        Action2 --> End2([Финиш:<br>Решение принято])
     end
 ```
 
