@@ -15,22 +15,22 @@ flowchart TD
         T2 --> DataPrep
         T3 --> DataPrep
         
-        DataPrep[Подготовка данных] --> ValidateFormat[Проверка<br>целостности файлов]
+        DataPrep[Подготовка<br>данных] --> ValidateFormat[Проверка<br>целостности]
         ValidateFormat --> ValidateLabels[Проверка<br>разметки]
         ValidateLabels --> SplitData[Train Val Split]
         
         SplitData --> TrainModel[Обучение<br>YOLOv8n]
-        TrainModel --> EvalModel[Оценка<br>на Val-выборке]
+        TrainModel --> EvalModel[Оценка<br>на Val]
         EvalModel --> CompareMetrics[Сравнение<br>с Baseline]
         
         CompareMetrics --> Gateway{Метрики<br>лучше?}
         
         %% Ветка успеха
         Gateway -->|Да| Register[Регистрация<br>версии]
-        Register --> LFS[(Git LFS<br>Storage)]
-        LFS --> BuildDocker[Сборка<br>Docker-образа]
-        BuildDocker --> Deploy[Деплой в прод]
-        Deploy --> EndSuccess([Конец: Успех])
+        Register --> LFS[(Git LFS)]
+        LFS --> BuildDocker[Сборка<br>Docker]
+        BuildDocker --> Deploy[Деплой<br>в прод]
+        Deploy --> EndSuccess([Конец:<br>Успех])
         
         %% Ветка провала
         Gateway -->|Нет| Reject[Отклонение<br>модели]
@@ -40,10 +40,13 @@ flowchart TD
     %% ПУЛ 2: Человек
     subgraph Human [Пул: ML Инженер]
         Log --> Decision{Проблема<br>исправима?}
-        Decision -->|Да| Retry[Корректировка<br>гиперпараметров]
-        Decision -->|Нет| EndFail([Конец:<br>Требуется анализ])
+        
+        Decision -->|Да| Retry[Правка<br>гиперпараметров]
+        Decision -->|Нет| EndFail([Конец:<br>Нужен анализ])
     end
     
+    Automation ~~~ Human
+
     Retry -.-> TrainModel
 ```
 
